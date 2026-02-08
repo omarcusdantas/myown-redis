@@ -1,0 +1,10 @@
+dist
+node_modules
+out/
+build
+.DS_Store
+*.pem
+*.tsbuildinfo
+.env
+.env.exemple
+pnpm-lock.yaml
