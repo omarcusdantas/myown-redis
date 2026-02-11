@@ -4,6 +4,11 @@ import pluginImport from "eslint-plugin-import";
 
 export default [
   {
+    ignores: ["**/*.js"],
+  },
+  ...tseslint.configs.strictTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
+  {
     files: ["**/*.ts"],
     languageOptions: {
       parserOptions: {
@@ -14,8 +19,6 @@ export default [
     plugins: {
       import: pluginImport,
     },
-    ...tseslint.configs.strictTypeChecked,
-    ...tseslint.configs.stylisticTypeChecked,
     rules: {
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/no-floating-promises": "error",
@@ -39,6 +42,10 @@ export default [
         },
       ],
     },
+  },
+  {
+    files: ["**/*.js"],
+    ...tseslint.configs.disableTypeChecked,
   },
   prettier,
 ];
