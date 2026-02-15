@@ -1,15 +1,21 @@
 import { createServer } from "net";
 import { decodeCommands } from "./decodeCommands.js";
+import { processCommand } from "./processCommand.js";
 
 import type { serverConfig } from "./types.js";
 import type { Server, Socket } from "net";
 
 function handleConnection(connection: Socket) {
   console.log("Client connected");
+  connection.write("+OK\r\n");
 
   connection.on("data", (data) => {
     const commands = decodeCommands(data.toString());
-    console.log(commands);
+
+    for (const cmd of commands) {
+      const response = processCommand(cmd);
+      if (response) connection.write(response);
+    }
   });
 
   connection.on("close", () => {
@@ -19,7 +25,7 @@ function handleConnection(connection: Socket) {
 
 function main() {
   const config: serverConfig = {
-    host: "127.0.0.1",
+    host: "0.0.0.0",
     port: 6379,
   };
 
