@@ -1,4 +1,5 @@
 import { createServer } from "net";
+import { decodeCommands } from "./decodeCommands.js";
 
 import type { serverConfig } from "./types.js";
 import type { Server, Socket } from "net";
@@ -7,7 +8,8 @@ function handleConnection(connection: Socket) {
   console.log("Client connected");
 
   connection.on("data", (data) => {
-    console.log(`Received: ${data.toString()}`);
+    const commands = decodeCommands(data.toString());
+    console.log(commands);
   });
 
   connection.on("close", () => {
@@ -23,7 +25,7 @@ function main() {
 
   const server: Server = createServer();
   server.listen(config.port, config.host);
-  console.log(`Listening on ${config.host}:${config.port.toString()}`);
+  console.log(`Listening on ${config.host}:${config.port}`);
 
   server.on("connection", (connection) => {
     handleConnection(connection);

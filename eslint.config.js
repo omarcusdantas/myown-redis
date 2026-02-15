@@ -41,6 +41,12 @@ export default [
           ignoreDeclarationSort: true,
         },
       ],
+      "@typescript-eslint/restrict-template-expressions": [
+        "error",
+        {
+          allowNumber: true,
+        },
+      ],
     },
   },
   {
