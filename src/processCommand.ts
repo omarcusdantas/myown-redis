@@ -1,4 +1,9 @@
-import { encodeSimple } from "./encoders.js";
+import { encodeBulk, encodeSimple } from "./encoders.js";
+
+function handleEcho(command: string[]) {
+  const message = command[1] ?? "";
+  return encodeBulk(message);
+}
 
 export function processCommand(command: string[]) {
   if (!command[0]) return;
@@ -7,5 +12,7 @@ export function processCommand(command: string[]) {
   switch (commandCode) {
     case "PING":
       return encodeSimple("PONG");
+    case "ECHO":
+      return handleEcho(command);
   }
 }

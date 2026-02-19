@@ -30,7 +30,6 @@ function parseBulkString(
   }
 
   const valueLine = expectLine(lines, startLine + 1, `reading bulk string data for element ${elementIndex}`);
-
   if (valueLine.length !== length) {
     throw new Error(
       `Bulk string length mismatch ${loc(startLine + 1, valueLine)}: expected ${length} bytes, got ${valueLine.length}`
