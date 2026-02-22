@@ -1,4 +1,4 @@
-function encodeNull(): string {
+export function encodeNull(): string {
   return `$-1\r\n`;
 }
 

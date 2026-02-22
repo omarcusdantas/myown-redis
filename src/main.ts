@@ -2,10 +2,10 @@ import { createServer } from "net";
 import { decodeCommands } from "./decodeCommands.js";
 import { processCommand } from "./processCommand.js";
 
-import type { serverConfig } from "./types.js";
+import type { KeyValueStore, ServerConfig } from "./types.js";
 import type { Server, Socket } from "net";
 
-function handleConnection(connection: Socket) {
+function handleConnection(connection: Socket, kvStore: KeyValueStore) {
   console.log("Client connected");
   connection.write("+OK\r\n");
 
@@ -13,7 +13,7 @@ function handleConnection(connection: Socket) {
     const commands = decodeCommands(data.toString());
 
     for (const cmd of commands) {
-      const response = processCommand(cmd);
+      const response = processCommand(cmd, kvStore);
       if (response) connection.write(response);
     }
   });
@@ -24,7 +24,7 @@ function handleConnection(connection: Socket) {
 }
 
 function main() {
-  const config: serverConfig = {
+  const config: ServerConfig = {
     host: "0.0.0.0",
     port: 6379,
   };
@@ -33,8 +33,10 @@ function main() {
   server.listen(config.port, config.host);
   console.log(`Listening on ${config.host}:${config.port}`);
 
+  const kvStore: KeyValueStore = new Map();
+
   server.on("connection", (connection) => {
-    handleConnection(connection);
+    handleConnection(connection, kvStore);
   });
 }
 
