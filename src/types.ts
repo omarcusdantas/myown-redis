@@ -3,4 +3,4 @@ export interface ServerConfig {
   port: number;
 }
 
-export type KeyValueStore = Map<string, { value: string }>;
+export type KeyValueStore = Map<string, { value: string; expiration: Date | null }>;
