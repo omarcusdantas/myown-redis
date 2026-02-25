@@ -1,5 +1,6 @@
-import { encodeBulk, encodeNull, encodeSimple } from "./encoders.js";
+import { encodeArray, encodeBulk, encodeError, encodeNull, encodeSimple } from "./encoders.js";
 import { formatExpiration } from "./formatExpiration.js";
+import { globToRegExp } from "./globToRegExp.js";
 
 import type { KeyValueStore } from "./types.js";
 
@@ -39,6 +40,14 @@ function handleGet(command: string[], kvStore: KeyValueStore) {
   return encodeBulk(entry.value);
 }
 
+function handleKeys(command: string[], kvStore: KeyValueStore) {
+  const pattern = command[1] ?? "*";
+  const matcher = globToRegExp(pattern);
+
+  const keys = Array.from(kvStore.keys()).filter((key) => matcher.test(key));
+  return encodeArray(keys);
+}
+
 export function processCommand(command: string[], kvStore: KeyValueStore) {
   if (!command[0]) return;
   const commandCode = command[0].toUpperCase();
@@ -52,5 +61,9 @@ export function processCommand(command: string[], kvStore: KeyValueStore) {
       return handleSet(command, kvStore);
     case "GET":
       return handleGet(command, kvStore);
+    case "KEYS":
+      return handleKeys(command, kvStore);
+    default:
+      return encodeError("unknown command");
   }
 }
