@@ -53,6 +53,8 @@ export function processCommand(command: string[], kvStore: KeyValueStore) {
   const commandCode = command[0].toUpperCase();
 
   switch (commandCode) {
+    case "COMMAND":
+      return;
     case "PING":
       return encodeSimple("PONG");
     case "ECHO":
