@@ -1,28 +1,10 @@
-import { createServer } from "net";
-import { decodeCommands } from "./decodeCommands.js";
-import { processCommand } from "./processCommand.js";
+import { createServer } from "node:net";
+import { handleConnection } from "./handleConnection.js";
+import { replicaHandshake } from "./replicaHandshake.js";
 import { generateReplicationId } from "./utils.js";
 
 import type { KeyValueStore, ServerConfig } from "./types.js";
-import type { Server, Socket } from "net";
-
-function handleConnection(connection: Socket, kvStore: KeyValueStore, config: ServerConfig) {
-  console.log("Client connected");
-  connection.write("+OK\r\n");
-
-  connection.on("data", (data) => {
-    const commands = decodeCommands(data.toString());
-
-    for (const cmd of commands) {
-      const response = processCommand(cmd, kvStore, config);
-      if (response) connection.write(response);
-    }
-  });
-
-  connection.on("close", () => {
-    console.log("Client disconnected");
-  });
-}
+import type { Server } from "net";
 
 function main() {
   const config: ServerConfig = {
@@ -31,16 +13,20 @@ function main() {
     role: "master",
     replid: generateReplicationId(),
     offset: 0,
+    replicaOfHost: "",
+    replicaOfPort: 0,
+    ackCount: 0,
   };
+
+  const kvStore: KeyValueStore = new Map();
+  replicaHandshake(config, kvStore);
 
   const server: Server = createServer();
   server.listen(config.port, config.host);
   console.log(`Listening on ${config.host}:${config.port}`);
 
-  const kvStore: KeyValueStore = new Map();
-
   server.on("connection", (connection) => {
-    handleConnection(connection, kvStore, config);
+    handleConnection(connection, kvStore, config, true);
   });
 }
 

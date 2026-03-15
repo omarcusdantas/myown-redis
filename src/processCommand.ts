@@ -9,7 +9,7 @@ function handleEcho(command: string[]) {
   return encodeBulk(message);
 }
 
-function handleSet(command: string[], kvStore: KeyValueStore) {
+function handleSet(command: string[], kvStore: KeyValueStore, sendReply: boolean) {
   const key = command[1] ?? "";
   const value = command[2] ?? "";
   let expiration: Date | null = null;
@@ -23,6 +23,8 @@ function handleSet(command: string[], kvStore: KeyValueStore) {
   }
 
   kvStore.set(key, { value, expiration });
+
+  if (!sendReply) return;
   return encodeSimple("OK");
 }
 
@@ -48,7 +50,7 @@ function handleKeys(command: string[], kvStore: KeyValueStore) {
   return encodeArray(keys);
 }
 
-export function processCommand(command: string[], kvStore: KeyValueStore, config: ServerConfig) {
+export function processCommand(command: string[], kvStore: KeyValueStore, config: ServerConfig, sendReply: boolean) {
   if (!command[0]) return;
   const commandCode = command[0].toUpperCase();
 
@@ -56,11 +58,12 @@ export function processCommand(command: string[], kvStore: KeyValueStore, config
     case "COMMAND":
       return;
     case "PING":
+      if (!sendReply) return;
       return encodeSimple("PONG");
     case "ECHO":
       return handleEcho(command);
     case "SET":
-      return handleSet(command, kvStore);
+      return handleSet(command, kvStore, sendReply);
     case "GET":
       return handleGet(command, kvStore);
     case "KEYS":
