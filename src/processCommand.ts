@@ -2,7 +2,7 @@ import { encodeArray, encodeBulk, encodeError, encodeNull, encodeSimple } from "
 import { formatExpiration } from "./formatExpiration.js";
 import { globToRegExp } from "./globToRegExp.js";
 
-import type { KeyValueStore } from "./types.js";
+import type { KeyValueStore, ServerConfig } from "./types.js";
 
 function handleEcho(command: string[]) {
   const message = command[1] ?? "";
@@ -48,7 +48,7 @@ function handleKeys(command: string[], kvStore: KeyValueStore) {
   return encodeArray(keys);
 }
 
-export function processCommand(command: string[], kvStore: KeyValueStore) {
+export function processCommand(command: string[], kvStore: KeyValueStore, config: ServerConfig) {
   if (!command[0]) return;
   const commandCode = command[0].toUpperCase();
 
@@ -65,6 +65,10 @@ export function processCommand(command: string[], kvStore: KeyValueStore) {
       return handleGet(command, kvStore);
     case "KEYS":
       return handleKeys(command, kvStore);
+    case "INFO":
+      return encodeBulk(
+        `role:${config.role}\r\nmaster_replid:${config.replid}\r\nmaster_repl_offset:${config.offset}\r\n`
+      );
     default:
       return encodeError("unknown command");
   }
