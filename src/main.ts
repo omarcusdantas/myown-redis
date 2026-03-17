@@ -1,5 +1,6 @@
 import { createServer } from "node:net";
 import { handleConnection } from "./handleConnection.js";
+import { processArgs } from "./processArgs.js";
 import { replicaHandshake } from "./replicaHandshake.js";
 import { generateReplicationId } from "./utils.js";
 
@@ -19,6 +20,7 @@ function main() {
   };
 
   const kvStore: KeyValueStore = new Map();
+  processArgs(process.argv, config);
   replicaHandshake(config, kvStore);
 
   const server: Server = createServer();
