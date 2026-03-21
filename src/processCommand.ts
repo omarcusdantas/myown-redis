@@ -50,6 +50,18 @@ function handleKeys(command: string[], kvStore: KeyValueStore) {
   return encodeArray(keys);
 }
 
+function handleREPLCONF(command: string[], config: ServerConfig) {
+  if (command[1]?.toUpperCase() === "GETACK") {
+    return encodeArray(["REPLCONF", "ACK", config.offset.toString()]);
+  }
+
+  if (command[1]?.toUpperCase() === "ACK") {
+    config.ackCount++;
+  }
+
+  return encodeBulk("OK");
+}
+
 export function processCommand(command: string[], kvStore: KeyValueStore, config: ServerConfig, sendReply: boolean) {
   if (!command[0]) return;
   const commandCode = command[0].toUpperCase();
@@ -72,6 +84,8 @@ export function processCommand(command: string[], kvStore: KeyValueStore, config
       return encodeBulk(
         `role:${config.role}\r\nmaster_replid:${config.replid}\r\nmaster_repl_offset:${config.offset}\r\n`
       );
+    case "REPLCONF":
+      return handleREPLCONF(command, config);
     default:
       return encodeError("unknown command");
   }
