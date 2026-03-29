@@ -16,7 +16,11 @@ function parseBulkString(
   startLine: number,
   elementIndex: number
 ): { value: string; nextLine: number } {
-  const lengthLine = expectLine(lines, startLine, `expecting bulk string length for element ${elementIndex}`);
+  const lengthLine = expectLine(
+    lines,
+    startLine,
+    `expecting bulk string length for element ${elementIndex}`
+  );
 
   if (!lengthLine.startsWith("$")) {
     throw new Error(
@@ -26,10 +30,16 @@ function parseBulkString(
 
   const length = Number(lengthLine.slice(1));
   if (!Number.isInteger(length) || length < 0) {
-    throw new Error(`Invalid bulk string length ${loc(elementIndex, lengthLine)}: expected non-negative integer`);
+    throw new Error(
+      `Invalid bulk string length ${loc(elementIndex, lengthLine)}: expected non-negative integer`
+    );
   }
 
-  const valueLine = expectLine(lines, startLine + 1, `reading bulk string data for element ${elementIndex}`);
+  const valueLine = expectLine(
+    lines,
+    startLine + 1,
+    `reading bulk string data for element ${elementIndex}`
+  );
   if (valueLine.length !== length) {
     throw new Error(
       `Bulk string length mismatch ${loc(startLine + 1, valueLine)}: expected ${length} bytes, got ${valueLine.length}`
@@ -44,7 +54,9 @@ function parseRespCommand(lines: string[], startLine: number) {
 
   const arrSize = Number(header.slice(1));
   if (!Number.isInteger(arrSize) || arrSize < 0) {
-    throw new Error(`Invalid RESP array size ${loc(startLine, header)}: expected non-negative integer`);
+    throw new Error(
+      `Invalid RESP array size ${loc(startLine, header)}: expected non-negative integer`
+    );
   }
 
   const cmd: string[] = [];

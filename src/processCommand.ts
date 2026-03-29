@@ -3,6 +3,7 @@ import { formatExpiration } from "./formatExpiration.js";
 import { globToRegExp } from "./globToRegExp.js";
 
 import type { KeyValueStore, ServerConfig } from "./types.js";
+import type { Socket } from "net";
 
 function handleEcho(command: string[]) {
   const message = command[1] ?? "";
@@ -62,31 +63,62 @@ function handleREPLCONF(command: string[], config: ServerConfig) {
   return encodeBulk("OK");
 }
 
-export function processCommand(command: string[], kvStore: KeyValueStore, config: ServerConfig, sendReply: boolean) {
+export function processCommand({
+  command,
+  kvStore,
+  config,
+  sendReply,
+  writer,
+}: {
+  command: string[];
+  kvStore: KeyValueStore;
+  config: ServerConfig;
+  sendReply: boolean;
+  writer: Socket["write"];
+}) {
   if (!command[0]) return;
   const commandCode = command[0].toUpperCase();
+
+  let response: string | undefined;
 
   switch (commandCode) {
     case "COMMAND":
       return;
+
     case "PING":
-      if (!sendReply) return;
-      return encodeSimple("PONG");
+      if (sendReply) response = encodeSimple("PONG");
+      break;
+
     case "ECHO":
-      return handleEcho(command);
+      response = handleEcho(command);
+      break;
+
     case "SET":
-      return handleSet(command, kvStore, sendReply);
+      response = handleSet(command, kvStore, sendReply);
+      break;
+
     case "GET":
-      return handleGet(command, kvStore);
+      response = handleGet(command, kvStore);
+      break;
+
     case "KEYS":
-      return handleKeys(command, kvStore);
+      response = handleKeys(command, kvStore);
+      break;
+
     case "INFO":
-      return encodeBulk(
+      response = encodeBulk(
         `role:${config.role}\r\nmaster_replid:${config.replid}\r\nmaster_repl_offset:${config.offset}\r\n`
       );
+      break;
+
     case "REPLCONF":
-      return handleREPLCONF(command, config);
+      response = handleREPLCONF(command, config);
+      break;
+
     default:
-      return encodeError("unknown command");
+      response = encodeError("unknown command");
+      break;
   }
+
+  if (response) writer(response);
 }
