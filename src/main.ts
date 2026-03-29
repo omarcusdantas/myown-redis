@@ -17,6 +17,7 @@ function main() {
     replicaOfHost: "",
     replicaOfPort: 0,
     ackCount: 0,
+    replicas: [],
   };
 
   const kvStore: KeyValueStore = new Map();

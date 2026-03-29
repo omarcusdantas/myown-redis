@@ -1,6 +1,7 @@
 import { encodeArray, encodeBulk, encodeError, encodeNull, encodeSimple } from "./encoders.js";
 import { formatExpiration } from "./formatExpiration.js";
 import { globToRegExp } from "./globToRegExp.js";
+import { getEmptyRDB } from "./utils.js";
 
 import type { KeyValueStore, ServerConfig } from "./types.js";
 import type { Socket } from "net";
@@ -51,7 +52,7 @@ function handleKeys(command: string[], kvStore: KeyValueStore) {
   return encodeArray(keys);
 }
 
-function handleREPLCONF(command: string[], config: ServerConfig) {
+function handleReplconf(command: string[], config: ServerConfig) {
   if (command[1]?.toUpperCase() === "GETACK") {
     return encodeArray(["REPLCONF", "ACK", config.offset.toString()]);
   }
@@ -63,18 +64,28 @@ function handleREPLCONF(command: string[], config: ServerConfig) {
   return encodeBulk("OK");
 }
 
+function handlePsync(config: ServerConfig, connection: Socket) {
+  connection.write(encodeSimple(`FULLRESYNC ${config.replid} 0`));
+
+  const emptyRDB = getEmptyRDB();
+  connection.write(`\$${emptyRDB.length}\r\n`);
+  connection.write(emptyRDB);
+
+  config.replicas.push({ connection, offset: 0, active: true });
+}
+
 export function processCommand({
   command,
   kvStore,
   config,
   sendReply,
-  writer,
+  connection,
 }: {
   command: string[];
   kvStore: KeyValueStore;
   config: ServerConfig;
   sendReply: boolean;
-  writer: Socket["write"];
+  connection: Socket;
 }) {
   if (!command[0]) return;
   const commandCode = command[0].toUpperCase();
@@ -112,7 +123,11 @@ export function processCommand({
       break;
 
     case "REPLCONF":
-      response = handleREPLCONF(command, config);
+      response = handleReplconf(command, config);
+      break;
+
+    case "PSYNC":
+      handlePsync(config, connection);
       break;
 
     default:
@@ -120,5 +135,5 @@ export function processCommand({
       break;
   }
 
-  if (response) writer(response);
+  if (response) connection.write(response);
 }

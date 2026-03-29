@@ -22,7 +22,7 @@ export function handleConnection(
         kvStore,
         config,
         sendReply,
-        writer: (data) => connection.write(data),
+        connection,
       });
     }
   });
