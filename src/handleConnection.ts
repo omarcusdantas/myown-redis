@@ -11,10 +11,10 @@ export function handleConnection(
   sendReply: boolean
 ) {
   console.log("Client connected");
-  connection.write("+OK\r\n");
 
   connection.on("data", (data) => {
-    const commands = decodeCommands(data.toString());
+    const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
+    const commands = decodeCommands(buffer);
 
     for (const command of commands) {
       processCommand({

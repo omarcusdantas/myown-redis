@@ -71,9 +71,38 @@ function parseRespCommand(lines: string[], startLine: number) {
   return { cmd, nextLine: lineIndex };
 }
 
-export function decodeCommands(data: string) {
+function stripReplicationPrefix(data: Buffer) {
+  let offset = 0;
+  let str = data.toString();
+
+  if (str.startsWith("+FULLRESYNC")) {
+    const end = str.indexOf("\r\n");
+    console.log("Handshake (psync):", str.slice(0, end));
+
+    offset += end + 2;
+    str = data.subarray(offset).toString();
+  }
+
+  if (str.startsWith("$")) {
+    const end = str.indexOf("\r\n");
+    const sizeStr = str.slice(1, end);
+    const rdbSize = parseInt(sizeStr, 10);
+
+    if (isNaN(rdbSize)) throw new Error(`Invalid RDB size: ${sizeStr}`);
+
+    const rdbStart = offset + end + 2;
+    const rdbEnd = rdbStart + rdbSize;
+
+    console.log("Handshake (rdb):", data.subarray(rdbStart, rdbEnd));
+    offset = rdbEnd;
+  }
+
+  return data.subarray(offset);
+}
+
+export function decodeCommands(data: Buffer) {
   const commands: string[][] = [];
-  const lines = data.split("\r\n");
+  const lines = stripReplicationPrefix(data).toString().split("\r\n");
 
   let lineIndex = 0;
   while (lineIndex < lines.length) {
