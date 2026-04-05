@@ -94,7 +94,8 @@ export function processCommand({
 
   switch (commandCode) {
     case "COMMAND":
-      return;
+      response = encodeSimple("OK");
+      break;
 
     case "PING":
       if (sendReply) response = encodeSimple("PONG");
