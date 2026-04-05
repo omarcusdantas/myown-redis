@@ -2,7 +2,14 @@ import { formatExpiration } from "./formatExpiration.js";
 import { globToRegExp } from "./globToRegExp.js";
 import { propagateToReplicas } from "./propagateToReplicas.js";
 import { getEmptyRDB } from "./utils.js";
-import { encodeArray, encodeBulk, encodeError, encodeNull, encodeSimple } from "./utils.js";
+import {
+  encodeArray,
+  encodeBulk,
+  encodeError,
+  encodeInteger,
+  encodeNull,
+  encodeSimple,
+} from "./utils.js";
 
 import type { KeyValueStore, ServerConfig } from "./types.js";
 import type { Socket } from "net";
@@ -71,7 +78,7 @@ function handleReplconf(command: string[], config: ServerConfig) {
   }
 
   if (command[1]?.toUpperCase() === "ACK") {
-    config.ackCount++;
+    for (const handler of config.onReplicaAckHandlers) handler();
   }
 
   return encodeBulk("OK");
@@ -87,7 +94,82 @@ function handlePsync(config: ServerConfig, connection: Socket) {
   config.replicas.push({ connection, offset: 0, isActive: true });
 }
 
-export function processCommand({
+function waitForReplicaAcks({
+  config,
+  requiredReplicas,
+  timeoutMs,
+  initialAcknowledged,
+}: {
+  config: ServerConfig;
+  requiredReplicas: number;
+  timeoutMs: number;
+  initialAcknowledged: number;
+}): Promise<string> {
+  let acknowledgedReplicas = initialAcknowledged;
+
+  return new Promise<string>((resolve) => {
+    function cleanup() {
+      config.onReplicaAckHandlers.delete(handleReplicaAck);
+      clearTimeout(timeout);
+    }
+
+    function safeResolve(value: string) {
+      cleanup();
+      resolve(value);
+    }
+
+    function tryResolve() {
+      if (acknowledgedReplicas >= requiredReplicas)
+        safeResolve(encodeInteger(acknowledgedReplicas));
+    }
+
+    function handleReplicaAck() {
+      acknowledgedReplicas++;
+      tryResolve();
+    }
+
+    const timeout = setTimeout(() => {
+      safeResolve(encodeInteger(acknowledgedReplicas));
+    }, timeoutMs);
+
+    config.onReplicaAckHandlers.add(handleReplicaAck);
+    tryResolve();
+  });
+}
+
+async function handleWait(command: string[], config: ServerConfig) {
+  const requiredReplicas = parseInt(command[1] ?? "0", 10);
+  const timeoutMs = parseInt(command[2] ?? "0", 10);
+
+  const activeReplicas = config.replicas.filter((replica) => replica.isActive);
+  config.replicas = activeReplicas;
+
+  let acknowledgedReplicas = 0;
+  for (const replica of config.replicas) {
+    if (replica.offset === 0) acknowledgedReplicas++;
+  }
+
+  for (const replica of config.replicas) {
+    if (replica.offset <= 0) continue;
+
+    try {
+      const request = encodeArray(["REPLCONF", "GETACK", "*"]);
+      replica.connection.write(request);
+      replica.offset += request.length;
+    } catch {
+      replica.isActive = false;
+    }
+  }
+
+  return waitForReplicaAcks({
+    config,
+    requiredReplicas,
+    timeoutMs,
+    initialAcknowledged: acknowledgedReplicas,
+  });
+}
+
+export async function processCommand({
   command,
   kvStore,
   config,
@@ -142,6 +224,10 @@ export function processCommand({
 
     case "PSYNC":
       handlePsync(config, connection);
+      break;
+
+    case "WAIT":
+      response = await handleWait(command, config);
       break;
 
     default:

@@ -38,3 +38,7 @@ export function encodeArray(arr: string[]): string {
 export function encodeError(s: string): string {
   return `-${s}\r\n`;
 }
+
+export function encodeInteger(x: number): string {
+  return `:${x}\r\n`;
+}

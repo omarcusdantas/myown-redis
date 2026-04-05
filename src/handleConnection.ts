@@ -12,19 +12,27 @@ export function handleConnection(
 ) {
   console.log("Client connected");
 
-  connection.on("data", (data) => {
-    const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
-    const commands = decodeCommands(buffer);
+  async function handleData(data: Buffer | string) {
+    try {
+      const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
+      const commands = decodeCommands(buffer);
 
-    for (const command of commands) {
-      processCommand({
-        command,
-        kvStore,
-        config,
-        sendReply,
-        connection,
-      });
+      for (const command of commands) {
+        await processCommand({
+          command,
+          kvStore,
+          config,
+          sendReply,
+          connection,
+        });
+      }
+    } catch (err) {
+      console.error("Error handling data:", err);
     }
+  }
+
+  connection.on("data", (data) => {
+    void handleData(data);
   });
 
   connection.on("close", () => {

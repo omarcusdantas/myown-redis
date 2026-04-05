@@ -16,6 +16,7 @@ export interface ServerConfig {
   replicaOfPort: number;
   ackCount: number;
   replicas: ReplicaState[];
+  onReplicaAckHandlers: Set<() => void>;
 }
 
 export type KeyValueStore = Map<string, { value: string; expiration: Date | null }>;
