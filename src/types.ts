@@ -3,7 +3,7 @@ import type { Socket } from "net";
 interface ReplicaState {
   connection: Socket;
   offset: number;
-  active: boolean;
+  isActive: boolean;
 }
 
 export interface ServerConfig {

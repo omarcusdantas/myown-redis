@@ -1,6 +1,6 @@
 import { connect } from "node:net";
-import { encodeArray } from "./encoders.js";
 import { handleConnection } from "./handleConnection.js";
+import { encodeArray } from "./utils.js";
 
 import type { KeyValueStore, ServerConfig } from "./types.js";
 

@@ -1,7 +1,8 @@
-import { encodeArray, encodeBulk, encodeError, encodeNull, encodeSimple } from "./encoders.js";
 import { formatExpiration } from "./formatExpiration.js";
 import { globToRegExp } from "./globToRegExp.js";
+import { propagateToReplicas } from "./propagateToReplicas.js";
 import { getEmptyRDB } from "./utils.js";
+import { encodeArray, encodeBulk, encodeError, encodeNull, encodeSimple } from "./utils.js";
 
 import type { KeyValueStore, ServerConfig } from "./types.js";
 import type { Socket } from "net";
@@ -11,7 +12,17 @@ function handleEcho(command: string[]) {
   return encodeBulk(message);
 }
 
-function handleSet(command: string[], kvStore: KeyValueStore, sendReply: boolean) {
+function handleSet({
+  command,
+  kvStore,
+  sendReply,
+  config,
+}: {
+  command: string[];
+  kvStore: KeyValueStore;
+  sendReply: boolean;
+  config: ServerConfig;
+}) {
   const key = command[1] ?? "";
   const value = command[2] ?? "";
   let expiration: Date | null = null;
@@ -27,6 +38,8 @@ function handleSet(command: string[], kvStore: KeyValueStore, sendReply: boolean
   kvStore.set(key, { value, expiration });
 
   if (!sendReply) return;
+
+  propagateToReplicas(config, command);
   return encodeSimple("OK");
 }
 
@@ -71,7 +84,7 @@ function handlePsync(config: ServerConfig, connection: Socket) {
   connection.write(`\$${emptyRDB.length}\r\n`);
   connection.write(emptyRDB);
 
-  config.replicas.push({ connection, offset: 0, active: true });
+  config.replicas.push({ connection, offset: 0, isActive: true });
 }
 
 export function processCommand({
@@ -106,7 +119,7 @@ export function processCommand({
       break;
 
     case "SET":
-      response = handleSet(command, kvStore, sendReply);
+      response = handleSet({ command, kvStore, sendReply, config });
       break;
 
     case "GET":
@@ -137,4 +150,5 @@ export function processCommand({
   }
 
   if (response) connection.write(response);
+  config.offset += encodeArray(command).length;
 }
