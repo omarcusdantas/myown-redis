@@ -42,7 +42,7 @@ function handleSet({
     expiration = formatExpiration(expOption, expValue);
   }
 
-  kvStore.set(key, { value, expiration });
+  kvStore.set(key, { value, expiration, type: "string" });
 
   if (!sendReply) return;
 
@@ -55,7 +55,8 @@ function handleGet(command: string[], kvStore: KeyValueStore) {
   const entry = kvStore.get(key);
   if (!entry) return encodeNull();
 
-  const isExpired = entry.expiration && entry.expiration < new Date();
+  const now = new Date();
+  const isExpired = entry.expiration && entry.expiration < now;
   if (isExpired) {
     kvStore.delete(key);
     return encodeNull();
@@ -169,6 +170,21 @@ async function handleWait(command: string[], config: ServerConfig) {
   });
 }
 
+function handleType(command: string[], kvStore: KeyValueStore) {
+  const key = command[1] ?? "";
+  const entry = kvStore.get(key);
+  if (!entry) return encodeSimple("none");
+
+  const now = new Date();
+  const isExpired = entry.expiration && entry.expiration < now;
+  if (isExpired) {
+    kvStore.delete(key);
+    return encodeSimple("none");
+  }
+
+  return encodeSimple(entry.type);
+}
+
 export async function processCommand({
   command,
   kvStore,
@@ -228,6 +244,10 @@ export async function processCommand({
 
     case "WAIT":
       response = await handleWait(command, config);
+      break;
+
+    case "TYPE":
+      response = handleType(command, kvStore);
       break;
 
     default:

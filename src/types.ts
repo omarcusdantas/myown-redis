@@ -19,4 +19,11 @@ export interface ServerConfig {
   onReplicaAckHandlers: Set<() => void>;
 }
 
-export type KeyValueStore = Map<string, { value: string; expiration: Date | null }>;
+export type KeyValueStore = Map<
+  string,
+  {
+    value: string;
+    expiration: Date | null;
+    type: "string";
+  }
+>;
