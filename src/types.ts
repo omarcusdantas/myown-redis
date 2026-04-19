@@ -19,11 +19,16 @@ export interface ServerConfig {
   onReplicaAckHandlers: Set<() => void>;
 }
 
-export type KeyValueStore = Map<
-  string,
-  {
-    value: string;
-    expiration: Date | null;
-    type: "string";
-  }
->;
+export type StreamEntry = string[];
+
+export interface StreamData {
+  first: [number, number];
+  last: [number, number];
+  entries: Map<number, Map<number, StreamEntry>>;
+}
+
+export type KVEntry =
+  | { type: "string"; value: string; expiration: Date | null }
+  | { type: "stream"; value: ""; expiration: null; stream: StreamData };
+
+export type KeyValueStore = Map<string, KVEntry>;
