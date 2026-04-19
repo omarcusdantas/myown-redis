@@ -1,8 +1,7 @@
 import { createServer } from "node:net";
-import { handleConnection } from "./handleConnection.js";
-import { processArgs } from "./processArgs.js";
-import { replicaHandshake } from "./replicaHandshake.js";
-import { generateReplicationId } from "./utils.js";
+import { generateReplicationId, replicaHandshake } from "./replication/handshake.js";
+import { processArgs } from "./server/args.js";
+import { handleConnection } from "./server/connection.js";
 
 import type { KeyValueStore, ServerConfig } from "./types.js";
 import type { Server } from "net";

@@ -1,7 +1,7 @@
-import { decodeCommands } from "./decodeCommands.js";
-import { processCommand } from "./processCommand.js";
+import { processCommand } from "../commands/index.js";
+import { decodeCommands } from "../protocol/decode.js";
 
-import type { KeyValueStore, ServerConfig } from "./types.js";
+import type { KeyValueStore, ServerConfig } from "../types.js";
 import type { Socket } from "net";
 
 export function handleConnection(

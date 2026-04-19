@@ -1,6 +1,6 @@
-import { encodeArray } from "./utils.js";
+import { encodeArray } from "../protocol/encode.js";
 
-import type { ServerConfig } from "./types.js";
+import type { ServerConfig } from "../types.js";
 
 export function propagateToReplicas(config: ServerConfig, command: string[]) {
   config.replicas = config.replicas.filter((replica) => replica.isActive);

@@ -1,8 +1,13 @@
+import { randomBytes } from "node:crypto";
 import { connect } from "node:net";
-import { handleConnection } from "./handleConnection.js";
-import { encodeArray } from "./utils.js";
+import { encodeArray } from "../protocol/encode.js";
+import { handleConnection } from "../server/connection.js";
 
-import type { KeyValueStore, ServerConfig } from "./types.js";
+import type { KeyValueStore, ServerConfig } from "../types.js";
+
+export function generateReplicationId() {
+  return randomBytes(20).toString("hex");
+}
 
 export function replicaHandshake(config: ServerConfig, kvStore: KeyValueStore) {
   if (config.role === "master") {

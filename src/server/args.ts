@@ -1,4 +1,4 @@
-import type { ServerConfig } from "./types.js";
+import type { ServerConfig } from "../types.js";
 
 function handlePortArg(config: ServerConfig, args: string[], index: number) {
   const port = parseInt(args[index + 1] ?? "", 10);
