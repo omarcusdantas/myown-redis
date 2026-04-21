@@ -1,6 +1,6 @@
 import { handlePsync, handleReplconf, handleWait } from "./replication.js";
 import { handleEcho, handleInfo } from "./server.js";
-import { handleXAdd } from "./stream.js";
+import { handleXAdd, handleXRange } from "./stream.js";
 import { handleGet, handleKeys, handleSet, handleType } from "./string.js";
 import { encodeArray, encodeError, encodeSimple } from "../protocol/encode.js";
 
@@ -72,6 +72,10 @@ export async function processCommand({
 
     case "XADD":
       response = handleXAdd(command, kvStore);
+      break;
+
+    case "XRANGE":
+      response = handleXRange(command, kvStore);
       break;
 
     default:

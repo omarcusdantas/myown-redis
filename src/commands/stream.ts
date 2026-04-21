@@ -67,3 +67,67 @@ export function handleXAdd(command: string[], kvStore: KeyValueStore): string {
 
   return encodeBulk(`${timestamp}-${sequence}`);
 }
+
+export function handleXRange(command: string[], kvStore: KeyValueStore): string {
+  const streamKey = command[1] ?? "";
+  const start = command[2] ?? "-";
+  const end = command[3] ?? "+";
+
+  const entry = kvStore.get(streamKey);
+  if (entry?.type !== "stream") return "*0\r\n";
+
+  const stream = entry.stream;
+
+  let startTimestamp = 0;
+  let startSequence = 0;
+  let endTimestamp = Infinity;
+  let endSequence = Infinity;
+
+  if (start === "-") {
+    startTimestamp = stream.first[0];
+    startSequence = stream.first[1];
+  } else {
+    startTimestamp = parseInt(start.split("-")[0] ?? "0", 10);
+    if (start.includes("-")) {
+      startSequence = parseInt(start.split("-")[1] ?? "0", 10);
+    }
+  }
+
+  if (end === "+") {
+    endTimestamp = stream.last[0];
+    endSequence = stream.last[1];
+  } else {
+    endTimestamp = parseInt(end.split("-")[0] ?? "0", 10);
+    if (end.includes("-")) {
+      endSequence = parseInt(end.split("-")[1] ?? "0", 10);
+    }
+  }
+
+  const result: [string, string[]][] = [];
+
+  for (const [timestamp, sequences] of stream.entries) {
+    if (timestamp < startTimestamp || timestamp > endTimestamp) continue;
+
+    for (const [sequence, fields] of sequences) {
+      const afterStart =
+        timestamp > startTimestamp || (timestamp === startTimestamp && sequence >= startSequence);
+      const beforeEnd =
+        timestamp < endTimestamp || (timestamp === endTimestamp && sequence <= endSequence);
+
+      if (afterStart && beforeEnd) {
+        result.push([`${timestamp}-${sequence}`, fields]);
+      }
+    }
+  }
+
+  let encoded = `*${result.length}\r\n`;
+  for (const [id, fields] of result) {
+    encoded += `*2\r\n$${id.length}\r\n${id}\r\n`;
+    encoded += `*${fields.length}\r\n`;
+    for (const field of fields) {
+      encoded += `$${field.length}\r\n${field}\r\n`;
+    }
+  }
+
+  return encoded;
+}
