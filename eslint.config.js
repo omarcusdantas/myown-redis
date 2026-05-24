@@ -24,6 +24,7 @@ export default [
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/consistent-type-imports": ["error", { prefer: "type-imports" }],
       "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-unnecessary-condition": "warn",
       "import/order": [
         "error",
         {
