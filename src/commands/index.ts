@@ -2,6 +2,14 @@ import { handlePsync, handleReplconf, handleWait } from "./replication.js";
 import { handleEcho, handleInfo } from "./server.js";
 import { handleXAdd, handleXRange, handleXRead } from "./stream.js";
 import { handleGet, handleKeys, handleSet, handleType } from "./string.js";
+import {
+  handleLPush,
+  handleLPop,
+  handleLRange,
+  handleLLen,
+  handleRPush,
+  handleRPop,
+} from "./list.js";
 import { encodeArray, encodeError, encodeSimple } from "../protocol/encode.js";
 
 import type { KeyValueStore, ServerConfig } from "../types.js";
@@ -68,6 +76,30 @@ export async function processCommand({
 
     case "TYPE":
       response = handleType(command, kvStore);
+      break;
+
+    case "LPUSH":
+      response = handleLPush({ command, kvStore, sendReply, config });
+      break;
+
+    case "RPUSH":
+      response = handleRPush({ command, kvStore, sendReply, config });
+      break;
+
+    case "LPOP":
+      response = handleLPop({ command, kvStore, sendReply, config });
+      break;
+
+    case "RPOP":
+      response = handleRPop({ command, kvStore, sendReply, config });
+      break;
+
+    case "LRANGE":
+      response = handleLRange(command, kvStore);
+      break;
+
+    case "LLEN":
+      response = handleLLen(command, kvStore);
       break;
 
     case "XADD":
