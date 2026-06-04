@@ -1,16 +1,17 @@
-import { handlePsync, handleReplconf, handleWait } from "./replication.js";
-import { handleEcho, handleInfo } from "./server.js";
-import { handleXAdd, handleXRange, handleXRead } from "./stream.js";
-import { handleGet, handleKeys, handleSet, handleType } from "./string.js";
+import { handleKeys, handleType } from "./generic.js";
 import {
-  handleLPush,
-  handleLPop,
-  handleLRange,
   handleLLen,
-  handleRPush,
+  handleLPop,
+  handleLPush,
+  handleLRange,
   handleRPop,
+  handleRPush,
 } from "./list.js";
-import { encodeArray, encodeError, encodeSimple } from "../protocol/encode.js";
+import { handlePsync, handleReplconf, handleWait } from "./replication.js";
+import { handleCommand, handleEcho, handleInfo, handlePing } from "./server.js";
+import { handleXAdd, handleXRange, handleXRead } from "./stream.js";
+import { handleGet, handleSet } from "./string.js";
+import { encodeArray, encodeError } from "../protocol/encode.js";
 
 import type { KeyValueStore, ServerConfig } from "../types.js";
 import type { Socket } from "net";
@@ -35,11 +36,11 @@ export async function processCommand({
 
   switch (commandCode) {
     case "COMMAND":
-      response = encodeSimple("OK");
+      response = handleCommand();
       break;
 
     case "PING":
-      if (sendReply) response = encodeSimple("PONG");
+      response = handlePing(sendReply);
       break;
 
     case "ECHO":
