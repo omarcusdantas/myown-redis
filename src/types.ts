@@ -39,9 +39,24 @@ export interface LinkedList {
   length: number;
 }
 
+export interface HashNode {
+  field: string;
+  value: string;
+  prev: HashNode | null;
+  next: HashNode | null;
+}
+
+export interface HashMap {
+  head: HashNode | null;
+  tail: HashNode | null;
+  length: number;
+  index: Map<string, HashNode>;
+}
+
 export type KVEntry =
   | { type: "string"; value: string; expiration: Date | null }
   | { type: "stream"; value: ""; expiration: null; stream: StreamData }
-  | { type: "list"; value: ""; expiration: Date | null; list: LinkedList };
+  | { type: "list"; value: ""; expiration: Date | null; list: LinkedList }
+  | { type: "hash"; value: ""; expiration: Date | null; hash: HashMap };
 
 export type KeyValueStore = Map<string, KVEntry>;

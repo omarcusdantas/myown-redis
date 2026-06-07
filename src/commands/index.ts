@@ -1,5 +1,13 @@
 import { handleKeys, handleType } from "./generic.js";
 import {
+  handleHDel,
+  handleHExists,
+  handleHGet,
+  handleHGetAll,
+  handleHLen,
+  handleHSet,
+} from "./hash.js";
+import {
   handleLLen,
   handleLPop,
   handleLPush,
@@ -113,6 +121,30 @@ export async function processCommand({
 
     case "XREAD":
       response = await handleXRead(command, kvStore);
+      break;
+
+    case "HSET":
+      response = handleHSet({ command, kvStore, sendReply, config });
+      break;
+
+    case "HGET":
+      response = handleHGet(command, kvStore);
+      break;
+
+    case "HGETALL":
+      response = handleHGetAll(command, kvStore);
+      break;
+
+    case "HDEL":
+      response = handleHDel({ command, kvStore, sendReply, config });
+      break;
+
+    case "HEXISTS":
+      response = handleHExists(command, kvStore);
+      break;
+
+    case "HLEN":
+      response = handleHLen(command, kvStore);
       break;
 
     default:
