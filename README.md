@@ -2,6 +2,8 @@
 
 A Redis server clone built from scratch in TypeScript on top of Node.js' `net` module. It speaks the [RESP](https://redis.io/docs/latest/develop/reference/protocol-spec/) wire protocol, so you can talk to it with `redis-cli` or any standard Redis client. It supports multiple data types, key expiration and master–replica replication.
 
+![MyOwn Redis demo](./docs/demo.gif)
+
 ## :speech_balloon: Description
 
 This project contains all the files for an in-memory key-value server compatible with the Redis protocol.
