@@ -1,6 +1,6 @@
 # MyOwn Redis
 
-A Redis server clone built from scratch in TypeScript on top of Node.js' `net` module. It speaks the [RESP](https://redis.io/docs/latest/develop/reference/protocol-spec/) wire protocol, so you can talk to it with `redis-cli` or any standard Redis client. It supports multiple data types, key expiration and master–replica replication.
+A Redis server clone built from scratch in TypeScript on top of Node.js' `net` module. It speaks the [RESP](https://redis.io/docs/latest/develop/reference/protocol-spec/) wire protocol, so you can talk to it with `redis-cli` or any standard Redis client. It supports multiple data types, key expiration and master-replica replication.
 
 ![MyOwn Redis demo](./docs/demo.gif)
 
@@ -15,7 +15,7 @@ This project contains all the files for an in-memory key-value server compatible
 - `KEYS` pattern matching through a custom glob-to-regex converter (`*`, `?`, `[...]`).
 - Custom data structures: a doubly linked list backing lists and an insertion-ordered, index-backed linked list backing hashes.
 - Streams with auto-generated IDs, range queries and blocking reads (`XREAD ... BLOCK`).
-- Master–replica replication: handshake, `PSYNC` full resync, command propagation and `WAIT` for acknowledgements.
+- Master-replica replication: handshake, `PSYNC` full resync, command propagation and `WAIT` for acknowledgements.
 
 ## ✨ Tech
 
@@ -70,8 +70,8 @@ OK
 
 ### Command-line flags
 
-- `--port <port>` — change the port the server listens on (default `6379`).
-- `--replicaof <host> <port>` — start the server as a **replica** of the given master. The replica performs the handshake, receives propagated writes and answers `WAIT`/`REPLCONF GETACK`.
+- `--port <port>`: change the port the server listens on (default `6379`).
+- `--replicaof <host> <port>`: start the server as a **replica** of the given master. The replica performs the handshake, receives propagated writes and answers `WAIT`/`REPLCONF GETACK`.
 
 ```bash
 # Master on 6379
@@ -101,48 +101,48 @@ The server dispatches commands case-insensitively. The following are supported:
 
 ### Connection & server
 
-- `PING` — replies with `PONG`.
-- `ECHO <message>` — replies with the given message.
-- `COMMAND` — replies with `OK` (stub for client handshakes).
-- `INFO` — returns replication info (`role`, `master_replid`, `master_repl_offset`).
+- `PING`: replies with `PONG`.
+- `ECHO <message>`: replies with the given message.
+- `COMMAND`: replies with `OK` (stub for client handshakes).
+- `INFO`: returns replication info (`role`, `master_replid`, `master_repl_offset`).
 
 ### Generic
 
-- `KEYS <pattern>` — returns all keys matching a glob pattern.
-- `TYPE <key>` — returns the type of the value stored at a key.
+- `KEYS <pattern>`: returns all keys matching a glob pattern.
+- `TYPE <key>`: returns the type of the value stored at a key.
 
 ### Strings
 
-- `SET <key> <value> [EX|PX|EXAT|PXAT <time>]` — stores a string, optionally with an expiration.
-- `GET <key>` — returns the value at a key (or nil if missing/expired).
+- `SET <key> <value> [EX|PX|EXAT|PXAT <time>]`: stores a string, optionally with an expiration.
+- `GET <key>`: returns the value at a key (or nil if missing/expired).
 
 ### Lists
 
-- `LPUSH <key> <element...>` / `RPUSH <key> <element...>` — prepend/append elements.
-- `LPOP <key> [count]` / `RPOP <key> [count]` — pop elements from the head/tail.
-- `LRANGE <key> <start> <stop>` — return a range of elements (supports negative indexes).
-- `LLEN <key>` — return the length of the list.
+- `LPUSH <key> <element...>` / `RPUSH <key> <element...>`: prepend/append elements.
+- `LPOP <key> [count]` / `RPOP <key> [count]`: pop elements from the head/tail.
+- `LRANGE <key> <start> <stop>`: return a range of elements (supports negative indexes).
+- `LLEN <key>`: return the length of the list.
 
 ### Hashes
 
-- `HSET <key> <field> <value> [field value...]` — set one or more field-value pairs.
-- `HGET <key> <field>` — return the value of a field.
-- `HGETALL <key>` — return all fields and values.
-- `HDEL <key> <field...>` — delete one or more fields.
-- `HEXISTS <key> <field>` — check whether a field exists.
-- `HLEN <key>` — return the number of fields.
+- `HSET <key> <field> <value> [field value...]`: set one or more field-value pairs.
+- `HGET <key> <field>`: return the value of a field.
+- `HGETALL <key>`: return all fields and values.
+- `HDEL <key> <field...>`: delete one or more fields.
+- `HEXISTS <key> <field>`: check whether a field exists.
+- `HLEN <key>`: return the number of fields.
 
 ### Streams
 
-- `XADD <key> <id|*> <field value...>` — append an entry (`*` auto-generates the ID).
-- `XRANGE <key> <start> <end>` — return entries within an ID range (`-`/`+` for open ends).
-- `XREAD [BLOCK <ms>] STREAMS <key...> <id...>` — read new entries, optionally blocking until data arrives.
+- `XADD <key> <id|*> <field value...>`: append an entry (`*` auto-generates the ID).
+- `XRANGE <key> <start> <end>`: return entries within an ID range (`-`/`+` for open ends).
+- `XREAD [BLOCK <ms>] STREAMS <key...> <id...>`: read new entries, optionally blocking until data arrives.
 
 ### Replication
 
-- `REPLCONF ...` — replication configuration exchange (`listening-port`, `capa`, `GETACK`, `ACK`).
-- `PSYNC <replid> <offset>` — full resynchronization, sends a `FULLRESYNC` reply followed by an empty RDB.
-- `WAIT <numreplicas> <timeout>` — block until the given number of replicas acknowledge writes or the timeout elapses.
+- `REPLCONF ...`: replication configuration exchange (`listening-port`, `capa`, `GETACK`, `ACK`).
+- `PSYNC <replid> <offset>`: full resynchronization, sends a `FULLRESYNC` reply followed by an empty RDB.
+- `WAIT <numreplicas> <timeout>`: block until the given number of replicas acknowledge writes or the timeout elapses.
 
 ## :pushpin: Next steps
 
